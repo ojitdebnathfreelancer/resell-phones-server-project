@@ -21,6 +21,7 @@ const resell = async () =>{
     try{
         const categoryNameData = client.db('resellphones').collection('categoryName');
         const productsData = client.db('resellphones').collection('products');
+        const bookingsData = client.db('resellphones').collection('bookings');
 
         app.get('/categories', async(req, res)=>{
             const categoryName = await categoryNameData.find({}).toArray();
@@ -34,6 +35,14 @@ const resell = async () =>{
             const category = await productsData.find(query).toArray();
             res.send(category);
         });
+        // get category ways data 
+
+        app.post('/booking', async (req, res)=>{
+            const booked = req.body;
+            const result = await bookingsData.insertOne(booked);
+            res.send(result);
+        });
+        // booking product save to db 
     }
     finally{
 
