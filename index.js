@@ -52,13 +52,27 @@ const resell = async () => {
             const email = req.decoded.email;
             const query = {email: email};
             const user = await usersData.findOne(query);
-            console.log(user);
+
             if(user.role !== "admin"){
                 return res.status(403).send('Your are not a admin, forbiden access')
             }
                 next()
         };
         // admin veify 
+
+        const sellerVerify = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = {email: email};
+            const user = await usersData.findOne(query);
+
+            if(user.role !== "seller"){
+                return res.status(403).send('Your are not a seller, forbiden access')
+            }
+                next()
+        };
+        // seller veify 
+
+        
 
         app.post('/users', async (req, res) => {
             const user = req.body;
