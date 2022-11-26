@@ -20,12 +20,12 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 const jwtVerify = (req, res, netx) => {
     const token = req.headers.authorization;
-    if(!token){
-        return res.status(401).send({message:"You have not access token"})
+    if (!token) {
+        return res.status(401).send({ message: "You have not access token" })
     }
     const Mtoken = token.split(' ')[1];
-    jwt.verify(Mtoken, process.env.ACCESS_TOKEN, (error, decoded)=>{
-        if(error){
+    jwt.verify(Mtoken, process.env.ACCESS_TOKEN, (error, decoded) => {
+        if (error) {
             return res.status(403).send("Your access forbiden for error")
         }
         req.decoded = decoded;
@@ -48,7 +48,19 @@ const resell = async () => {
         });
         // jwt token sign to client side 
 
-        app.post('/users', async (req, res)=>{
+        const adminVerify = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = {email: email};
+            const user = await usersData.findOne(query);
+            console.log(user);
+            if(user.role !== "admin"){
+                return res.status(403).send('Your are not a admin, forbiden access')
+            }
+                next()
+        };
+        // admin veify 
+
+        app.post('/users', async (req, res) => {
             const user = req.body;
             const result = await usersData.insertOne(user);
             res.send(result);
@@ -74,10 +86,12 @@ const resell = async () => {
             const result = await bookingsData.insertOne(booked);
             res.send(result);
         });
-        // booking product save to db 
+        // booking product save to db
 
-        app.get('/booking', jwtVerify, async (req, res)=>{
-            const booked = await bookingsData.find({}).toArray();
+        app.get('/booking', jwtVerify, async (req, res) => {
+            const email = req.query.email;
+            const query = { buyerEmail: email };
+            const booked = await bookingsData.find(query).toArray();
             res.send(booked);
         });
         // get user all booked 
