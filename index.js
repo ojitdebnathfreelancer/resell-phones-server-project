@@ -39,6 +39,7 @@ const resell = async () => {
         const categoryNameData = client.db('resellphones').collection('categoryName');
         const productsData = client.db('resellphones').collection('products');
         const bookingsData = client.db('resellphones').collection('bookings');
+        const usersData = client.db('resellphones').collection('users');
 
         app.post('/jwt', (req, res) => {
             const user = req.body;
@@ -46,6 +47,13 @@ const resell = async () => {
             res.send({ token });
         });
         // jwt token sign to client side 
+
+        app.post('/users', async (req, res)=>{
+            const user = req.body;
+            const result = await usersData.insertOne(user);
+            res.send(result);
+        });
+        // save user to bd 
 
         app.get('/categories', async (req, res) => {
             const categoryName = await categoryNameData.find({}).toArray();
@@ -67,6 +75,12 @@ const resell = async () => {
             res.send(result);
         });
         // booking product save to db 
+
+        app.get('/booking', jwtVerify, async (req, res)=>{
+            const booked = await bookingsData.find({}).toArray();
+            res.send(booked);
+        });
+        // get user all booked 
     }
     finally {
 
