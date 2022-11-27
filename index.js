@@ -2,6 +2,7 @@ const express = require('express');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const { query } = require('express');
 const app = express();
 require('dotenv').config();
 const port = process.env.PORT || 5000;
@@ -194,13 +195,20 @@ const resell = async () => {
         });
         // seller all products from db 
 
-        app.get('/mybuyers', async (req, res)=>{
+        app.get('/mybuyers', async (req, res) => {
             const email = req.query.email;
-            const query = {sellerEamil:email};
+            const query = { sellerEamil: email };
             const buyers = await bookingsData.find(query).toArray();
             res.send(buyers);
         });
         // seller of buyers from db 
+
+        app.get('/allseller', async (req, res) => {
+            const query = { role: 'seller' };
+            const sellers = await usersData.find(query).toArray();
+            res.send(sellers);
+        });
+        // all serllers get from db 
     }
     finally {
 
