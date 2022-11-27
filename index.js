@@ -41,10 +41,23 @@ const resell = async () => {
         const bookingsData = client.db('resellphones').collection('bookings');
         const usersData = client.db('resellphones').collection('users');
 
+        // app.get('/update', async (req, res) => {
+        //     const filter = {};
+        //     const options = { upsert: true };
+        //     const updateDoc = {
+        //         $set: {
+        //             number:'01826783984'
+        //         },
+        //     };
+
+        //     const result = await productsData.updateMany(filter,updateDoc,options);
+        //     res.send(result);
+        // })
+
         app.get('/jwt', (req, res) => {
             const user = req.query.email;
             if (user) {
-                const token = jwt.sign({user}, process.env.ACCESS_TOKEN, { expiresIn: '1d' });
+                const token = jwt.sign({ user }, process.env.ACCESS_TOKEN, { expiresIn: '1d' });
                 res.send({ token });
             }
         });
@@ -55,7 +68,7 @@ const resell = async () => {
             const query = { email: email };
             const user = await usersData.findOne(query);
 
-            if (user.role !== "admin") {
+            if (user?.role !== "admin") {
                 return res.status(403).send('Your are not a admin, forbiden access')
             }
             next()
@@ -67,7 +80,7 @@ const resell = async () => {
             const query = { email: email };
             const user = await usersData.findOne(query);
 
-            if (user.role !== "seller") {
+            if (user?.role !== "seller") {
                 return res.status(403).send('Your are not a seller, forbiden access')
             }
             next()
@@ -78,9 +91,9 @@ const resell = async () => {
             const email = req.decoded.email;
             const query = { email: email };
             const user = await usersData.findOne(query);
-
-            if (user.role !== "buyer") {
-                return res.status(403).send('Your are not a seller, forbiden access')
+            // console.log(email);
+            if (user?.role !== "buyer") {
+                return res.status(403).send('Your are not a buyer, forbiden access')
             }
             next()
         };
@@ -125,7 +138,7 @@ const resell = async () => {
             const user = req.body;
             const query = { email: user.email };
             const existUser = await usersData.findOne(query);
-            
+
             if (existUser) {
                 return;
             };
@@ -149,7 +162,7 @@ const resell = async () => {
         });
         // get category ways data 
 
-        app.post('/booking', jwtVerify, sellerVerify, async (req, res) => {
+        app.post('/booking', jwtVerify, async (req, res) => {
             const booked = req.body;
             const result = await bookingsData.insertOne(booked);
             res.send(result);
@@ -163,6 +176,13 @@ const resell = async () => {
             res.send(booked);
         });
         // get user all booked 
+
+        app.post('/addproduct', async (req, res)=>{
+            const product = req.body;
+            const result = await productsData.insertOne(product);
+            res.send(result);
+        })
+        // add product to db 
     }
     finally {
 
