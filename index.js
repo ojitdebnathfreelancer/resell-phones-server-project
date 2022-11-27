@@ -193,6 +193,14 @@ const resell = async () => {
             res.send(products);
         });
         // seller all products from db 
+
+        app.get('/mybuyers', async (req, res)=>{
+            const email = req.query.email;
+            const query = {sellerEamil:email};
+            const buyers = await bookingsData.find(query).toArray();
+            res.send(buyers);
+        });
+        // seller of buyers from db 
     }
     finally {
 
