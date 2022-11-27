@@ -46,11 +46,13 @@ const resell = async () => {
         //     const options = { upsert: true };
         //     const updateDoc = {
         //         $set: {
-        //             number:'01826783984'
+        //             sellerName:"Ojit",
+        //             sellerEamil:'ojit@gmail.com',
+        //             sellerNumber:'01739836450',
         //         },
         //     };
 
-        //     const result = await productsData.updateMany(filter,updateDoc,options);
+        //     const result = await bookingsData.updateMany(filter, updateDoc, options);
         //     res.send(result);
         // })
 
@@ -177,12 +179,20 @@ const resell = async () => {
         });
         // get user all booked 
 
-        app.post('/addproduct', async (req, res)=>{
+        app.post('/addproduct', jwtVerify, async (req, res) => {
             const product = req.body;
             const result = await productsData.insertOne(product);
             res.send(result);
         })
         // add product to db 
+
+        app.get('/myproducts', jwtVerify, async (req, res) => {
+            const email = req.query.email;
+            const query = { sellerEmail: email };
+            const products = await productsData.find(query).toArray();
+            res.send(products);
+        });
+        // seller all products from db 
     }
     finally {
 
