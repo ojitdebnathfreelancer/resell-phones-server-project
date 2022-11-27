@@ -18,7 +18,7 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@clu
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
-const jwtVerify = (req, res, netx) => {
+const jwtVerify = (req, res, next) => {
     const token = req.headers.authorization;
     if (!token) {
         return res.status(401).send({ message: "You have not access token" })
@@ -26,11 +26,11 @@ const jwtVerify = (req, res, netx) => {
     const Mtoken = token.split(' ')[1];
     jwt.verify(Mtoken, process.env.ACCESS_TOKEN, (error, decoded) => {
         if (error) {
-            return res.status(403).send("Your access forbiden for error")
+            return res.status(403).send({ message: "Your access forbiden for error" })
         }
         req.decoded = decoded;
+        next()
     })
-    netx()
 };
 // jwt verification 
 
@@ -41,41 +41,95 @@ const resell = async () => {
         const bookingsData = client.db('resellphones').collection('bookings');
         const usersData = client.db('resellphones').collection('users');
 
-        app.post('/jwt', (req, res) => {
-            const user = req.body;
-            const token = jwt.sign(user, process.env.ACCESS_TOKEN, { expiresIn: '1d' });
-            res.send({ token });
+        app.get('/jwt', (req, res) => {
+            const user = req.query.email;
+            if (user) {
+                const token = jwt.sign({user}, process.env.ACCESS_TOKEN, { expiresIn: '1d' });
+                res.send({ token });
+            }
         });
         // jwt token sign to client side 
 
         const adminVerify = async (req, res, next) => {
             const email = req.decoded.email;
-            const query = {email: email};
+            const query = { email: email };
             const user = await usersData.findOne(query);
 
-            if(user.role !== "admin"){
+            if (user.role !== "admin") {
                 return res.status(403).send('Your are not a admin, forbiden access')
             }
-                next()
+            next()
         };
         // admin veify 
 
         const sellerVerify = async (req, res, next) => {
             const email = req.decoded.email;
-            const query = {email: email};
+            const query = { email: email };
             const user = await usersData.findOne(query);
 
-            if(user.role !== "seller"){
+            if (user.role !== "seller") {
                 return res.status(403).send('Your are not a seller, forbiden access')
             }
-                next()
+            next()
         };
         // seller veify 
 
-        
+        const buyerVerify = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+            const user = await usersData.findOne(query);
 
+            if (user.role !== "buyer") {
+                return res.status(403).send('Your are not a seller, forbiden access')
+            }
+            next()
+        };
+        // buyer veify 
+
+
+        // -------------admin seller and buyer veryfid above----------------
+
+
+        app.get('/user/admin/:email', jwtVerify, async (req, res) => {
+            const email = req.params.email;
+            const query = { email };
+            const user = await usersData.findOne(query);
+
+            res.send({ isAdmin: user?.role === 'admin' })
+        });
+        // check admin for privete route 
+
+        app.get('/user/buyer/:email', jwtVerify, async (req, res) => {
+            const email = req.params.email;
+            const query = { email };
+            const user = await usersData.findOne(query);
+
+            res.send({ isBuyer: user?.role === 'buyer' })
+        });
+        // check buyer for privete route 
+
+        app.get('/user/seller/:email', jwtVerify, async (req, res) => {
+            const email = req.params.email;
+            const query = { email };
+            const user = await usersData.findOne(query);
+
+            res.send({ isSeller: user?.role === 'seller' })
+        });
+        // check seller for privete route 
+
+        // ---------admin seller and buyer Check for privet rout above----------
+
+
+        // -----------main apis call start--------
         app.post('/users', async (req, res) => {
             const user = req.body;
+            const query = { email: user.email };
+            const existUser = await usersData.findOne(query);
+            
+            if (existUser) {
+                return;
+            };
+
             const result = await usersData.insertOne(user);
             res.send(result);
         });
@@ -95,7 +149,7 @@ const resell = async () => {
         });
         // get category ways data 
 
-        app.post('/booking', async (req, res) => {
+        app.post('/booking', jwtVerify, sellerVerify, async (req, res) => {
             const booked = req.body;
             const result = await bookingsData.insertOne(booked);
             res.send(result);
