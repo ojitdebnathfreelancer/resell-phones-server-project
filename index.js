@@ -1,5 +1,5 @@
 const express = require('express');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const { query } = require('express');
@@ -180,6 +180,22 @@ const resell = async () => {
         });
         // get user all booked 
 
+        app.get('/bookingdelete/:id', jwtVerify, async (req, res)=>{
+            const id = req.params.id;
+            const query = {_id:ObjectId(id)};
+            const result = await bookingsData.deleteOne(query);
+            res.send(result)
+        });
+        // delete single items from booking 
+
+        app.get('/bookingdeleteall/:email', jwtVerify, async (req, res)=>{
+            const email = req.params.email;
+            const query = {buyerEmail:email};
+            const result = await bookingsData.deleteMany(query);
+            res.send(result)
+        });
+        // delete all items from booking 
+
         app.post('/addproduct', jwtVerify, async (req, res) => {
             const product = req.body;
             const result = await productsData.insertOne(product);
@@ -195,7 +211,7 @@ const resell = async () => {
         });
         // seller all products from db 
 
-        app.get('/mybuyers', async (req, res) => {
+        app.get('/mybuyers', jwtVerify, async (req, res) => {
             const email = req.query.email;
             const query = { sellerEamil: email };
             const buyers = await bookingsData.find(query).toArray();
@@ -203,12 +219,19 @@ const resell = async () => {
         });
         // seller of buyers from db 
 
-        app.get('/allseller', async (req, res) => {
+        app.get('/allseller', jwtVerify, async (req, res) => {
             const query = { role: 'seller' };
             const sellers = await usersData.find(query).toArray();
             res.send(sellers);
         });
         // all serllers get from db 
+
+        app.get('/allbuyers', jwtVerify, async (req, res)=>{
+            const query = {role :'buyer'}
+            const buyer = await usersData.find(query).toArray();
+            res.send(buyer);
+        });
+        // all buyers get form bd 
     }
     finally {
 
