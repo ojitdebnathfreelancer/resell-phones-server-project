@@ -47,7 +47,7 @@ const resell = async () => {
         //     const options = { upsert: true };
         //     const updateDoc = {
         //         $set: {
-        //             seller_verify:false
+        //             ads:false
         //         },
         //     };
 
@@ -83,7 +83,7 @@ const resell = async () => {
             const user = await usersData.findOne(query);
 
             if (user?.role !== "seller") {
-                return res.status(403).send('Your are not a seller, forbiden access')
+                return res.status(403).send({ message: 'Your are not a seller, forbiden access' })
             }
             next()
         };
@@ -179,17 +179,17 @@ const resell = async () => {
         });
         // get user all booked 
 
-        app.delete('/bookingdelete/:id', jwtVerify, async (req, res)=>{
+        app.delete('/bookingdelete/:id', jwtVerify, async (req, res) => {
             const id = req.params.id;
-            const query = {_id:ObjectId(id)};
+            const query = { _id: ObjectId(id) };
             const result = await bookingsData.deleteOne(query);
             res.send(result)
         });
         // delete single items from booking 
 
-        app.delete('/bookingdeleteall/:email', jwtVerify, async (req, res)=>{
+        app.delete('/bookingdeleteall/:email', jwtVerify, async (req, res) => {
             const email = req.params.email;
-            const query = {buyerEmail:email};
+            const query = { buyerEmail: email };
             const result = await bookingsData.deleteMany(query);
             res.send(result)
         });
@@ -210,7 +210,7 @@ const resell = async () => {
         });
         // seller all products from db 
 
-        app.delete('/myproductdelete/:id', jwtVerify, async (req, res)=>{
+        app.delete('/myproductdelete/:id', jwtVerify, async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const result = await productsData.deleteMany(query);
@@ -218,7 +218,7 @@ const resell = async () => {
         });
         // my single products delete 
 
-        app.delete('/myallproductsdelete', jwtVerify, async (req, res)=>{
+        app.delete('/myallproductsdelete', jwtVerify, async (req, res) => {
             const email = req.query.email;
             const query = { sellerEmail: email };
             const result = await productsData.deleteMany(query);
@@ -234,15 +234,15 @@ const resell = async () => {
         });
         // seller of buyers from db 
 
-        app.delete('/deletemybuyer/:id', jwtVerify, async (req, res)=>{
+        app.delete('/deletemybuyer/:id', jwtVerify, async (req, res) => {
             const id = req.params.id;
-            const query = {_id:ObjectId(id)};
+            const query = { _id: ObjectId(id) };
             const result = await bookingsData.deleteOne(query);
             res.send(result)
         });
         // delete signle buyer 
 
-        app.delete('/deletemyallbuyers/:email', jwtVerify, async (req, res)=>{
+        app.delete('/deletemyallbuyers/:email', jwtVerify, async (req, res) => {
             const email = req.params.email;
             const query = { sellerEamil: email };
             const result = await bookingsData.deleteMany(query);
@@ -257,27 +257,83 @@ const resell = async () => {
         });
         // all serllers get from db 
 
-        app.delete('/sellerdelete/:id', jwtVerify, async (req, res)=>{
+        app.put('/sellerverify', jwtVerify, async (req, res) => {
+            const email = req.query.email;
+            const filter = { sellerEmail: email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    seller_verify: true
+                },
+            };
+            const verifid = await productsData.updateMany(filter, updateDoc, options);
+            res.send(verifid);
+        });
+        // seller verify 
+
+        app.put('/usersellerverify/:id', jwtVerify, async (req, res) => {
             const id = req.params.id;
-            const query = {_id:ObjectId(id)};
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    seller_verify: true
+                },
+            };
+            const userSeller = await usersData.updateOne(filter, updateDoc, options);
+        });
+        // user seller verifiy 
+
+        app.delete('/sellerdelete/:id', jwtVerify, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
             const result = await usersData.deleteOne(query);
             res.send(result);
         });
         // one seller delete 
 
-        app.delete('/allsellerdelete', jwtVerify, async (req, res) =>{
-            const query = {role:'seller'};
+        app.delete('/allsellerdelete', jwtVerify, async (req, res) => {
+            const query = { role: 'seller' };
             const result = await usersData.deleteMany(query);
             res.send(result);
         });
         // delete all seller 
 
-        app.get('/allbuyers', jwtVerify, async (req, res)=>{
-            const query = {role :'buyer'}
+        app.get('/allbuyers', jwtVerify, async (req, res) => {
+            const query = { role: 'buyer' }
             const buyer = await usersData.find(query).toArray();
             res.send(buyer);
         });
         // all buyers get form bd 
+
+        app.delete('/buyerdelete/:id', jwtVerify, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await usersData.deleteOne(query);
+            res.send(result);
+        });
+        // delete one buyer 
+
+        app.get('/advertise', async (req, res) => {
+            const query = { ads: true };
+            const adsProducts = await productsData.find(query).toArray();
+            res.send(adsProducts);
+        });
+        // get all advertiase products 
+
+        app.put('/advertiseon/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    ads: true
+                },
+            };
+            const result = await productsData.updateOne(filter,updateDoc, options);
+            res.send(result);
+        });
+        // advetise running api 
     }
     finally {
 
