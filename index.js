@@ -180,7 +180,7 @@ const resell = async () => {
         });
         // get user all booked 
 
-        app.get('/bookingdelete/:id', jwtVerify, async (req, res)=>{
+        app.delete('/bookingdelete/:id', jwtVerify, async (req, res)=>{
             const id = req.params.id;
             const query = {_id:ObjectId(id)};
             const result = await bookingsData.deleteOne(query);
@@ -188,7 +188,7 @@ const resell = async () => {
         });
         // delete single items from booking 
 
-        app.get('/bookingdeleteall/:email', jwtVerify, async (req, res)=>{
+        app.delete('/bookingdeleteall/:email', jwtVerify, async (req, res)=>{
             const email = req.params.email;
             const query = {buyerEmail:email};
             const result = await bookingsData.deleteMany(query);
@@ -218,6 +218,22 @@ const resell = async () => {
             res.send(buyers);
         });
         // seller of buyers from db 
+
+        app.delete('/deletemybuyer/:id', jwtVerify, async (req, res)=>{
+            const id = req.params.id;
+            const query = {_id:ObjectId(id)};
+            const result = await bookingsData.deleteOne(query);
+            res.send(result)
+        });
+        // delete signle buyer 
+
+        app.delete('/deletemyallbuyers/:email', async (req, res)=>{
+            const email = req.params.email;
+            const query = { sellerEamil: email };
+            const result = await bookingsData.deleteMany(query);
+            res.send(result);
+        });
+        // delete all buyers 
 
         app.get('/allseller', jwtVerify, async (req, res) => {
             const query = { role: 'seller' };
