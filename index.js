@@ -5,7 +5,11 @@ const cors = require('cors');
 const { query } = require('express');
 const app = express();
 require('dotenv').config();
+
+const stripe = require("stripe")(process.env.PAYMENT_KEY);
+
 const port = process.env.PORT || 5000;
+
 
 app.use(cors());
 app.use(express.json());
@@ -47,11 +51,11 @@ const resell = async () => {
         //     const options = { upsert: true };
         //     const updateDoc = {
         //         $set: {
-        //             ads:false
+        //             pay:false
         //         },
         //     };
 
-        //     const result = await productsData.updateMany(filter, updateDoc, options);
+        //     const result = await bookingsData.updateMany(filter, updateDoc, options);
         //     res.send(result);
         // })
         // any colleaciton for update funtion 
@@ -158,7 +162,7 @@ const resell = async () => {
 
         app.get('/category/:id', jwtVerify, async (req, res) => {
             const id = req.params.id;
-            const query = { category_id: id };
+            const query = { category_id: id, pay: false };
             const category = await productsData.find(query).toArray();
             res.send(category);
         });
@@ -315,7 +319,7 @@ const resell = async () => {
         // delete one buyer 
 
         app.get('/advertise', async (req, res) => {
-            const query = { ads: true };
+            const query = { ads: true, pay: false };
             const adsProducts = await productsData.find(query).toArray();
             res.send(adsProducts);
         });
@@ -330,10 +334,70 @@ const resell = async () => {
                     ads: true
                 },
             };
-            const result = await productsData.updateOne(filter,updateDoc, options);
+            const result = await productsData.updateOne(filter, updateDoc, options);
             res.send(result);
         });
         // advetise running api 
+
+        app.get('/payment/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await bookingsData.findOne(query);
+            res.send(result);
+        });
+        // payment product getting 
+
+
+        app.post("/create-payment-intent", jwtVerify, async (req, res) => {
+            const booking = req.body;
+            const price = booking.price;
+            const amount = price * 100;
+
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: "bdt",
+                automatic_payment_methods: {
+                    enabled: true,
+                },
+            });
+
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
+        });
+        // buyer payment api 
+
+        app.put('/bookedpaymentupdate/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    pay: true
+                },
+            };
+            const result = await bookingsData.updateOne(filter, updateDoc, options);
+            res.send(result);
+        });
+        // booking payment update 
+
+
+        app.patch('/productpaymentupdate', async (req, res) => {
+            const product = req.body;
+            console.log(product);
+            const filter = {img:product.product_img};
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    pay: true,
+                    ads: false
+                },
+            };
+            const result = await productsData.updateOne(filter, updateDoc, options);
+            res.send(result);
+        });
+        // products payment update
+
     }
     finally {
 
