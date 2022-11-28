@@ -47,15 +47,14 @@ const resell = async () => {
         //     const options = { upsert: true };
         //     const updateDoc = {
         //         $set: {
-        //             sellerName:"Ojit",
-        //             sellerEamil:'ojit@gmail.com',
-        //             sellerNumber:'01739836450',
+        //             seller_verify:false
         //         },
         //     };
 
-        //     const result = await bookingsData.updateMany(filter, updateDoc, options);
+        //     const result = await productsData.updateMany(filter, updateDoc, options);
         //     res.send(result);
         // })
+        // any colleaciton for update funtion 
 
         app.get('/jwt', (req, res) => {
             const user = req.query.email;
@@ -257,6 +256,21 @@ const resell = async () => {
             res.send(sellers);
         });
         // all serllers get from db 
+
+        app.delete('/sellerdelete/:id', jwtVerify, async (req, res)=>{
+            const id = req.params.id;
+            const query = {_id:ObjectId(id)};
+            const result = await usersData.deleteOne(query);
+            res.send(result);
+        });
+        // one seller delete 
+
+        app.delete('/allsellerdelete', jwtVerify, async (req, res) =>{
+            const query = {role:'seller'};
+            const result = await usersData.deleteMany(query);
+            res.send(result);
+        });
+        // delete all seller 
 
         app.get('/allbuyers', jwtVerify, async (req, res)=>{
             const query = {role :'buyer'}
