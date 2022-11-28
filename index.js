@@ -211,6 +211,22 @@ const resell = async () => {
         });
         // seller all products from db 
 
+        app.delete('/myproductdelete/:id', jwtVerify, async (req, res)=>{
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await productsData.deleteMany(query);
+            res.send(result);
+        });
+        // my single products delete 
+
+        app.delete('/myallproductsdelete', jwtVerify, async (req, res)=>{
+            const email = req.query.email;
+            const query = { sellerEmail: email };
+            const result = await productsData.deleteMany(query);
+            res.send(result);
+        });
+        // my all products delete 
+
         app.get('/mybuyers', jwtVerify, async (req, res) => {
             const email = req.query.email;
             const query = { sellerEamil: email };
@@ -227,7 +243,7 @@ const resell = async () => {
         });
         // delete signle buyer 
 
-        app.delete('/deletemyallbuyers/:email', async (req, res)=>{
+        app.delete('/deletemyallbuyers/:email', jwtVerify, async (req, res)=>{
             const email = req.params.email;
             const query = { sellerEamil: email };
             const result = await bookingsData.deleteMany(query);
