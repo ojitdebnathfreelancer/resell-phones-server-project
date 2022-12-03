@@ -6,13 +6,20 @@ const { query } = require('express');
 const app = express();
 require('dotenv').config();
 
+const corsConfig = {
+    origin:'*',
+    credentials:true,
+    methoods:['GET', 'POST', 'DELETE', 'PUT', 'PATCH']
+}
+
 const stripe = require("stripe")(process.env.PAYMENT_KEY);
 
 const port = process.env.PORT || 5000;
 
 
-app.use(cors());
+app.use(cors(corsConfig));
 app.use(express.json());
+app.options('*', cors(corsConfig));
 
 app.get('/', (req, res) => {
     res.send('Resell phones server is running')
@@ -106,7 +113,7 @@ const resell = async () => {
         // buyer veify 
 
 
-        // -------------admin seller and buyer veryfid above----------------
+        // --------admin seller and buyer veryfid above did not use these --------
 
 
         app.get('/user/admin/:email', jwtVerify, async (req, res) => {
@@ -384,7 +391,6 @@ const resell = async () => {
 
         app.patch('/productpaymentupdate', async (req, res) => {
             const product = req.body;
-            console.log(product);
             const filter = {img:product.product_img};
             const options = { upsert: true };
             const updateDoc = {
